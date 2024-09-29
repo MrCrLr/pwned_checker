@@ -13,8 +13,6 @@
 
 #define BLOOM_SIZE (1 << 24)  // 16 million bits (2MB)
 #define NUM_HASHES 3          // Number of hash functions
-#define BUFFER_SIZE 1024 * 1024  // Read 1MB chunks at a time
-
 
 // BloomFilter structure definition
 typedef struct {
@@ -29,7 +27,7 @@ void set_bit(uint8_t *bit_array, uint32_t index);
 int get_bit(const uint8_t *bit_array, uint32_t index);
 void bloom_insert(BloomFilter *filter, const char *data);
 int bloom_contains(const BloomFilter *filter, const char *data);
-void populate_bloom_filter(BloomFilter *filter, const void *pwned_data, size_t file_size);
+void populate_bloom_filter(BloomFilter *filter, FILE *pwned_file);
 
 // Hash functions (can be improved for better distribution)
 uint32_t xxhash1(const char *data);

@@ -51,6 +51,25 @@ int bloom_contains(const BloomFilter *filter, const char *data)
            get_bit(filter->bit_array, xxhash3(data));
 }
 
+void populate_bloom_filter(BloomFilter *filter, FILE *pwned_file) 
+{
+    char line[128]; // Assuming each line has enough space for SHA1 + other data
+    char hash_prefix[11]; // To hold the first 5 bytes (10 characters in hex) of the pwned password hashes
+
+    // Read each line from the pwned password file
+    while (fgets(line, sizeof(line), pwned_file)) 
+    {
+        // Assuming that the pwned password file contains SHA1 hashes
+        strncpy(hash_prefix, line, 10); // Copy the first 10 characters (5 bytes in hex) of the hash
+        hash_prefix[10] = '\0';         // Null-terminate the string
+
+        // Insert the hash prefix into the Bloom filter
+        bloom_insert(filter, hash_prefix);
+    }
+}
+
+
+/*
 void populate_bloom_filter(BloomFilter *filter, const void *pwned_data, size_t file_size) 
 {
     const char *line_start = (const char*) pwned_data;
@@ -68,8 +87,6 @@ void populate_bloom_filter(BloomFilter *filter, const void *pwned_data, size_t f
         line_start = line_end + 1;  // Move to next line
     }
 }
-
-/*
 
 void populate_bloom_filter(BloomFilter *filter, const char *filename) 
 {
@@ -129,24 +146,8 @@ void populate_bloom_filter(BloomFilter *filter, const char *filename)
 }
 
 
-void populate_bloom_filter(BloomFilter *filter, FILE *pwned_file) 
-{
-    char line[128]; // Assuming each line has enough space for SHA1 + other data
-    char hash_prefix[11]; // To hold the first 5 bytes (10 characters in hex) of the pwned password hashes
 
-    // Read each line from the pwned password file
-    while (fgets(line, sizeof(line), pwned_file)) 
-    {
-        // Assuming that the pwned password file contains SHA1 hashes
-        strncpy(hash_prefix, line, 10); // Copy the first 10 characters (5 bytes in hex) of the hash
-        hash_prefix[10] = '\0';         // Null-terminate the string
 
-        // Insert the hash prefix into the Bloom filter
-        bloom_insert(filter, hash_prefix);
-    }
-}
-
-/*
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>

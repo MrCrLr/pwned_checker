@@ -17,7 +17,6 @@ SRCS = $(SRC_DIR)/main.c \
        $(SRC_DIR)/bloom_filter.c \
        $(SRC_DIR)/signal_handler.c \
        $(SRC_DIR)/utils.c \
-       $(SRC_DIR)/file_mapper.c  # Add file_mapper.c
 
 # Object files (derived from source files)
 OBJS = $(SRCS:.c=.o)

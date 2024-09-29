@@ -1,23 +1,22 @@
 #include "bloom_filter.h"
-#include "file_mapper.h"
 #include "program.h"
 
 int main() 
 {
-    // Initialize Bloom Filter
-    BloomFilter *filter = create_bloom_filter(BLOOM_SIZE);
-    
-    // Map pwned password file using mmap
-    size_t file_size;
-    void *pwned_data = map_file("resources/pwnedpasswords.txt", &file_size);
-    if (pwned_data == NULL) 
+    // Open the pwned password file
+    FILE *pwned_file = fopen("resources/pwnedpasswords.txt", "r");
+    if (!pwned_file) 
     {
-        fprintf(stderr, "Failed to map pwned password file.\n");
+        fprintf(stderr, "Could not open pwned password file.\n");
         return 1;
     }
 
+    // Initialize Bloom Filter
+    BloomFilter *filter = create_bloom_filter(BLOOM_SIZE);
+    
     // Populate the filter with pwned passwords
-    populate_bloom_filter(filter, pwned_data, file_size);
+    populate_bloom_filter(filter, pwned_file);
+    fclose(pwned_file);
 
     // Register cleanup function and signal handlers
     atexit(cleanup); 
@@ -62,9 +61,6 @@ int main()
     free_bloom_filter(filter);
     free(password);
     password = NULL;
-
-    // Unmap the file after usage
-    unmap_file(pwned_data, file_size);
     
     return 0;
 }

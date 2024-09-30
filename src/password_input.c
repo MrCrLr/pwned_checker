@@ -11,20 +11,34 @@ char* get_password_input()
     }
 
     int index = 0;
+    int max_length = 100; // Set a maximum length for the password (adjust as necessary)
 
-    printf("Enter your password: ");
-    set_echo(0); // Disable echoing and use non-canonical mode
+    do {
+        printf("Enter your password: ");
+        set_echo(0); // Disable echoing to hide password input
 
-    // Call the password masking function
-    if (read_and_mask_password(&password, &index, &size) == -1) 
-    {
-        free(password);
-        return NULL;
-    }
+        // Call the password masking function
+        int result = read_and_mask_password(&password, &index, &size);
+        set_echo(1); // Re-enable echoing
+        printf("\n");
 
-    set_echo(1); // Re-enable echoing
+        // Check if the password is too short or too long
+        if (result == -1) {
+            printf("An error occurred during password input.\n");
+            free(password);
+            return NULL;
+        } 
+        else if (index == 0) {
+            printf("Password cannot be empty. Please try again.\n");
+        } 
+        else if (index > max_length) {
+            printf("Password exceeds maximum allowed length (%d characters). Please try again.\n", max_length);
+            index = 0; // Reset index to allow re-entry
+        }
+
+    } while (index == 0 || index > max_length); // Repeat until valid input
+
     password[index] = '\0'; // Null-terminate the string
-    printf("\n");
 
     return password; // Return the dynamically allocated password
 }
@@ -42,10 +56,10 @@ int read_and_mask_password(char **password, int *index, int *size)
             if (*password == NULL) 
             {
                 fprintf(stderr, "Memory reallocation failed!\n");
-                free(password);
-                return -1;
+                return -1;  // Return error without freeing, since realloc handles that
             }
         }
+        
         // Handle backspace
         if (ch == 127 || ch == '\b') 
         {
@@ -55,12 +69,18 @@ int read_and_mask_password(char **password, int *index, int *size)
                 printf("\b \b"); // Erase the last character
             }
         } 
-        else if (isprint(ch))
+        // Allow only printable characters
+        else if (isprint(ch)) 
         {
             (*password)[(*index)++] = ch;
-            printf("*"); // Mask input
+            printf("*"); // Mask input with asterisk
+        } 
+        // Handle non-printable characters
+        else 
+        {
+            printf("\nInvalid character entered. Only printable characters are allowed.\n");
+            return -1;  // Return error if invalid character is encountered
         }
-        // Ignore non-printable characters silently (optional, or you could handle them here)
     }
     return 0; // Success
 }

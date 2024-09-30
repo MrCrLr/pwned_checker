@@ -11,13 +11,14 @@
 #include <unistd.h>
 #include <xxhash.h>
 
-#define BLOOM_SIZE (1 << 24)  // 16 million bits (2MB)
-#define NUM_HASHES 3          // Number of hash functions
+#define BLOOM_SIZE (8 * 1024 * 1024 * 8)  // 8MB in bits = 67,108,864 bits
+#define NUM_HASHES 3                      // Number of hash functions
 
 // BloomFilter structure definition
 typedef struct {
     uint8_t *bit_array;  // Pointer to the bit array
     size_t size;         // Size of the bit array in bits
+    size_t count;        // Number of inserted elements (for tracking usage)
 } BloomFilter;
 
 // Function prototypes for working with the Bloom filter
@@ -27,9 +28,19 @@ void set_bit(uint8_t *bit_array, uint32_t index);
 int get_bit(const uint8_t *bit_array, uint32_t index);
 void bloom_insert(BloomFilter *filter, const char *data);
 int bloom_contains(const BloomFilter *filter, const char *data);
-void populate_bloom_filter(BloomFilter *filter, FILE *pwned_file);
 
-// Hash functions (can be improved for better distribution)
+// Determine size of dataset and decide number of bloom filters necessary
+size_t get_file_size(const char *filename);
+int determine_optimal_bloom_filters(size_t file_size);
+
+// Recursively populate multiple Bloom filters
+void populate_recursive_bloom_filters(BloomFilter **filters, FILE *pwned_file, size_t num_filters, size_t current_filter);
+void split_into_bloom_filters(const char *filename, BloomFilter **filters, size_t num_filters);
+
+// Check if a Bloom filter is "full"
+int bloom_filter_is_full(BloomFilter *filter);
+
+// Hash functions (using xxhash for performance)
 uint32_t xxhash1(const char *data);
 uint32_t xxhash2(const char *data);
 uint32_t xxhash3(const char *data);

@@ -3,7 +3,18 @@
 BloomFilter* create_bloom_filter(size_t size)
 {
     BloomFilter *filter = malloc(sizeof(BloomFilter));
-    filter->bit_array = calloc(BLOOM_SIZE / 8, sizeof(uint8_t));  // Allocate bit array
+    if (!filter) {
+        fprintf(stderr, "Memory allocation failed for BloomFilter\n");
+        return NULL;
+    }
+    filter->bit_array = calloc(size / 8, sizeof(uint8_t));  // Allocate bit array
+    filter->size = size;
+    filter->count = 0;
+    if (!filter->bit_array) {
+        fprintf(stderr, "Memory allocation failed for bit_array\n");
+        free(filter);
+        return NULL;
+    }
     return filter;
 }
 
@@ -36,12 +47,12 @@ uint32_t xxhash3(const char *data) {
     return XXH32(data, strlen(data), 2) % BLOOM_SIZE;
 }
 
-
 void bloom_insert(BloomFilter *filter, const char *data) 
 {
     set_bit(filter->bit_array, xxhash1(data));
     set_bit(filter->bit_array, xxhash2(data));
     set_bit(filter->bit_array, xxhash3(data));
+    filter->count++;
 }
 
 int bloom_contains(const BloomFilter *filter, const char *data) 
@@ -51,145 +62,55 @@ int bloom_contains(const BloomFilter *filter, const char *data)
            get_bit(filter->bit_array, xxhash3(data));
 }
 
-void populate_bloom_filter(BloomFilter *filter, FILE *pwned_file) 
-{
-    char line[128]; // Assuming each line has enough space for SHA1 + other data
-    char hash_prefix[11]; // To hold the first 5 bytes (10 characters in hex) of the pwned password hashes
+int bloom_filter_is_full(BloomFilter *filter) {
+    return filter->count >= (filter->size / 8); // Simple heuristic: full when the bit array is "filled"
+}
 
+size_t get_file_size(const char *filename) {
+    struct stat st;
+    if (stat(filename, &st) == 0) {
+        return st.st_size;
+    }
+    return 0; // Error case
+}
+
+int determine_optimal_bloom_filters(size_t file_size) {
+    size_t filter_size_bits = BLOOM_SIZE;  // This is the size of one bloom filter in bits (8MB in bits)
+    return (file_size + filter_size_bits - 1) / filter_size_bits;  // Number of filters (rounded up)
+}
+
+// Populate multiple bloom filters recursively
+void populate_recursive_bloom_filters(BloomFilter **filters, FILE *pwned_file, size_t num_filters, size_t current_filter) 
+{
+    char line[128];
+    char hash_prefix[11];
+    
     // Read each line from the pwned password file
     while (fgets(line, sizeof(line), pwned_file)) 
     {
-        // Assuming that the pwned password file contains SHA1 hashes
-        strncpy(hash_prefix, line, 10); // Copy the first 10 characters (5 bytes in hex) of the hash
-        hash_prefix[10] = '\0';         // Null-terminate the string
+        // Assuming each line is a SHA1 hash, copy the first 10 characters (5 bytes in hex)
+        strncpy(hash_prefix, line, 10);
+        hash_prefix[10] = '\0';  // Null-terminate
 
-        // Insert the hash prefix into the Bloom filter
-        bloom_insert(filter, hash_prefix);
-    }
-}
+        // Insert into the current bloom filter
+        bloom_insert(filters[current_filter], hash_prefix);
 
-
-/*
-void populate_bloom_filter(BloomFilter *filter, const void *pwned_data, size_t file_size) 
-{
-    const char *line_start = (const char*) pwned_data;
-    const char *file_end = line_start + file_size;
-
-    while (line_start < file_end) {
-        const char *line_end = memchr(line_start, '\n', file_end - line_start);
-        if (!line_end) {
-            break;  // No more lines found
+        // If the current filter is full, move to the next one
+        if (bloom_filter_is_full(filters[current_filter])) {
+            current_filter = (current_filter + 1) % num_filters;
         }
-
-        // Insert the line into the Bloom filter (here you are assuming each line is a hash)
-        bloom_insert(filter, line_start);
-
-        line_start = line_end + 1;  // Move to next line
     }
 }
 
-void populate_bloom_filter(BloomFilter *filter, const char *filename) 
+void split_into_bloom_filters(const char *filename, BloomFilter **filters, size_t num_filters) 
 {
-    // Open the file using open() instead of fopen()
-    int fd = open(filename, O_RDONLY);
-    if (fd == -1) 
+    FILE *pwned_file = fopen(filename, "r");
+    if (!pwned_file) 
     {
-        perror("open");
+        fprintf(stderr, "Could not open file %s.\n", filename);
         return;
     }
 
-    // Get the file size
-    struct stat sb;
-    if (fstat(fd, &sb) == -1) 
-    {
-        perror("fstat");
-        close(fd);
-        return;
-    }
-
-    // Memory-map the file
-    char *file_data = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (file_data == MAP_FAILED) 
-    {
-        perror("mmap");
-        close(fd);
-        return;
-    }
-
-    // Now that the file is memory-mapped, process it like a large array
-    char *line_start = file_data;
-    char *line_end = NULL;
-
-    // Iterate over the entire file
-    while (line_start < file_data + sb.st_size) 
-    {
-        // Find the next newline character
-        line_end = memchr(line_start, '\n', file_data + sb.st_size - line_start);
-        if (!line_end) 
-        {
-            break;  // No more lines
-        }
-
-        // Null-terminate the current line
-        *line_end = '\0';
-
-        // Insert the line into the Bloom filter
-        bloom_insert(filter, line_start);
-
-        // Move to the next line
-        line_start = line_end + 1;
-    }
-
-    // Unmap the memory and close the file
-    munmap(file_data, sb.st_size);
-    close(fd);
+    populate_recursive_bloom_filters(filters, pwned_file, num_filters, 0);
+    fclose(pwned_file);
 }
-
-
-
-
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <stdio.h>
-#include "bloom_filter.h"
-
-void populate_bloom_filter(BloomFilter *filter, const char *filename) 
-{
-    int fd = open(filename, O_RDONLY);
-    if (fd == -1) 
-    {
-        perror("open");
-        return;
-    }
-
-    struct stat sb;
-    if (fstat(fd, &sb) == -1) 
-    {
-        perror("fstat");
-        close(fd);
-        return;
-    }
-
-    char *file_contents = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (file_contents == MAP_FAILED) 
-    {
-        perror("mmap");
-        close(fd);
-        return;
-    }
-
-    close(fd);
-
-    char *line = strtok(file_contents, "\n");
-    while (line != NULL) 
-    {
-        bloom_insert(filter, line); // Insert each line into the Bloom filter
-        line = strtok(NULL, "\n");
-    }
-
-    munmap(file_contents, sb.st_size); // Unmap the file after processing
-}
-*/

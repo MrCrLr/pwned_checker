@@ -2,7 +2,7 @@
 
 // Function to get password input with maximum length
 char* get_password_input(int max_password_length) {
-    int current_buffer_size = ALLOCATION; 
+    int current_buffer_size = PASSWORD_ALLOCATION; 
     char *password = malloc(current_buffer_size * sizeof(char));
     if (password == NULL) {
         fprintf(stderr, "Memory allocation failed for password input!\n");
@@ -74,7 +74,7 @@ int read_and_mask_password(char **password, int *index, int *size) {
 
 // Function to resize buffer
 char* resize_buffer(char *buffer, int *size) {
-    *size *= ALLOCATION; // Increase buffer size
+    *size *= PASSWORD_ALLOCATION; // Increase buffer size
     char *new_buffer = realloc(buffer, *size * sizeof(char));
     if (new_buffer == NULL) {
         fprintf(stderr, "Memory reallocation failed for buffer!\n");

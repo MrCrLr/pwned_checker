@@ -1,24 +1,6 @@
 #include "program.h"
 
 /**
- * Retrieves the hash prefix from a SHA1 hash.
- * 
- * @param hash: The SHA1 hash (20 bytes).
- * @param prefix: The output buffer for the first 10 characters (5 bytes in hex).
- */
-void get_hash_prefix(unsigned char *hash, char *prefix) {
-    if (hash == NULL || prefix == NULL) {
-        fprintf(stderr, "Error: Null pointer passed to get_hash_prefix.\n");
-        return; // Handle null pointer
-    }
-
-    for (int i = 0; i < 5; i++) {
-        snprintf(prefix + i * 2, 3, "%02X", hash[i]);
-    }
-    prefix[10] = '\0';  // Null-terminate the prefix
-}
-
-/**
  * Converts a SHA1 hash to a hex string.
  * 
  * @param hash: The SHA1 hash (20 bytes).

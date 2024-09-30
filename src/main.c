@@ -9,11 +9,10 @@ int main()
     if (init_db(&db, "database/pwnedpasswords.db") != 0)
         return 1;
 
-    // Open the pwned password file and determine file size
-    size_t file_size = get_file_size("resources/pwnedpasswords.txt");
-    if (file_size == 0) 
-    {
-        fprintf(stderr, "Could not determine file size.\n");
+    // Get the number of entries in the database
+    int file_size = get_password_count(db);
+    if (file_size < 0) {
+        fprintf(stderr, "Failed to get password count from database.\n");
         return 1;
     }
 
@@ -27,8 +26,11 @@ int main()
         filters[i] = create_bloom_filter(BLOOM_SIZE);
     }
 
-    // Populate the filters with pwned passwords
-    split_into_bloom_filters("resources/pwnedpasswords.txt", filters, num_filters);
+    // Populate the filters with pwned passwords from the database
+    populate_bloom_filters_from_db(filters, num_filters, db);
+
+    // Close the database after populating the Bloom filters
+    sqlite3_close(db);
 
     // Register cleanup function and signal handlers
     atexit(cleanup); 
@@ -79,7 +81,7 @@ int main()
             
             // Perform the deep check by searching the full SHA1 hash in the database
             // char known_hash[] = "00000000DD7F2A1C68A35673713783CA390C9E93"; // DEBUGGING
-            deep_check_password("database/pwnedpasswords.db", hash_hex); // Change back to known_hash for debugging
+            deep_check_password("database/pwnedpasswords.db", prefix, hash_hex); // Change back to known_hash for debugging
         } 
         else printf("Password not found in pwned list.\n");
 

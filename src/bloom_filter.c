@@ -5,13 +5,33 @@
  * 
  * @param filename: The name of the file.
  * @return: The size of the file in bytes, or 0 if an error occurs.
- */
+ 
 size_t get_file_size(const char *filename) {
     struct stat st;
     if (stat(filename, &st) == 0) {
         return st.st_size;
     }
     return 0; // Error case
+}
+*/
+int get_password_count(sqlite3 *db) {
+    const char *sql = "SELECT COUNT(*) FROM pwned_passwords;";
+    sqlite3_stmt *stmt;
+    int rc;
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+        return -1; // Error case
+    }
+
+    int count = 0;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return count;
 }
 
 /**
@@ -54,7 +74,7 @@ BloomFilter* create_bloom_filter(size_t size) {
  * @param filename: The name of the pwned password file.
  * @param filters: An array of Bloom filters.
  * @param num_filters: The number of Bloom filters.
- */
+
 void split_into_bloom_filters(const char *filename, BloomFilter **filters, size_t num_filters) {
     FILE *pwned_file = fopen(filename, "r");
     if (!pwned_file) {
@@ -65,6 +85,7 @@ void split_into_bloom_filters(const char *filename, BloomFilter **filters, size_
     populate_recursive_bloom_filters(filters, pwned_file, num_filters, 0);
     fclose(pwned_file);
 }
+ */
 
 /**
  * Populates multiple Bloom filters recursively from the pwned password file.
@@ -73,7 +94,7 @@ void split_into_bloom_filters(const char *filename, BloomFilter **filters, size_
  * @param pwned_file: The file containing pwned passwords.
  * @param num_filters: The number of Bloom filters.
  * @param current_filter: The index of the current Bloom filter being populated.
- */
+ * 
 void populate_recursive_bloom_filters(BloomFilter **filters, FILE *pwned_file, size_t num_filters, size_t current_filter) {
     char line[128];
     char hash_prefix[11];
@@ -91,6 +112,59 @@ void populate_recursive_bloom_filters(BloomFilter **filters, FILE *pwned_file, s
             current_filter = (current_filter + 1) % num_filters;
         }
     }
+}
+*/
+
+void populate_bloom_filters_from_db(BloomFilter **filters, size_t num_filters, sqlite3 *db) {
+    const char *sql = "SELECT full_hash FROM pwned_passwords LIMIT ? OFFSET ?";
+    sqlite3_stmt *stmt;
+
+    // Prepare the SQL statement
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "Failed to prepare statement: %s\n", sqlite3_errmsg(db));
+        return;
+    }
+
+    size_t batch_size = 10000; // Number of entries to fetch in each batch
+    size_t offset = 0;
+    int filter_index = 0;
+
+    while (1) {
+        // Bind the batch size and offset
+        sqlite3_bind_int(stmt, 1, batch_size);
+        sqlite3_bind_int(stmt, 2, offset);
+
+        // Execute the statement
+        rc = sqlite3_step(stmt);
+        if (rc == SQLITE_DONE) {
+            break; // No more rows to fetch
+        } else if (rc != SQLITE_ROW) {
+            fprintf(stderr, "Error during fetching: %s\n", sqlite3_errmsg(db));
+            break;
+        }
+
+        // Process the fetched rows
+        for (size_t i = 0; i < batch_size; i++) {
+            const char *hash = (const char *)sqlite3_column_text(stmt, 0);
+
+            // Insert the hash into the Bloom filter
+            bloom_insert(filters[filter_index], hash);
+
+            // If the current filter is full, move to the next one
+            if (bloom_filter_is_full(filters[filter_index])) {
+                filter_index = (filter_index + 1) % num_filters;
+            }
+
+            // Check if there are more rows to process
+            if (sqlite3_step(stmt) != SQLITE_ROW) {
+                break; // Exit if there are no more rows
+            }
+        }
+        offset += batch_size; // Update the offset for the next batch
+    }
+
+    sqlite3_finalize(stmt); // Clean up the prepared statement
 }
 
 /**

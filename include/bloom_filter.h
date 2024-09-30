@@ -2,6 +2,7 @@
 #define BLOOM_FILTER_H
 
 #include <fcntl.h>
+#include <sqlite3.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,11 +31,11 @@ void bloom_insert(BloomFilter *filter, const char *data);
 int bloom_contains(const BloomFilter *filter, const char *data);
 
 // Determine size of dataset and decide number of bloom filters necessary
-size_t get_file_size(const char *filename);
+int get_password_count(sqlite3 *db);
 int determine_optimal_bloom_filters(size_t file_size);
 
 // Recursively populate multiple Bloom filters
-void populate_recursive_bloom_filters(BloomFilter **filters, FILE *pwned_file, size_t num_filters, size_t current_filter);
+void populate_bloom_filters_from_db(BloomFilter **filters, size_t num_filters, sqlite3 *db);
 void split_into_bloom_filters(const char *filename, BloomFilter **filters, size_t num_filters);
 
 // Check if a Bloom filter is "full"

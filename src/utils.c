@@ -13,7 +13,7 @@ void get_hash_prefix(unsigned char *hash, char *prefix) {
     }
 
     for (int i = 0; i < 5; i++) {
-        snprintf(prefix + i * 2, 3, "%02x", hash[i]);
+        snprintf(prefix + i * 2, 3, "%02X", hash[i]);
     }
     prefix[10] = '\0';  // Null-terminate the prefix
 }

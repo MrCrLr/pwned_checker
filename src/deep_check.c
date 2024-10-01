@@ -11,9 +11,7 @@ int init_db(sqlite3 **db, const char *db_path) {
 }
 
 // Function to check for an exact match in the SQLite DB using full hash
-#include "deep_check.h"
-
-int deep_check_password(sqlite3 *db, const char *full_hash) 
+int deep_check_password(sqlite3 *db, const char *binary_hash) 
 {
     sqlite3_stmt *stmt;
     int rc;
@@ -27,16 +25,8 @@ int deep_check_password(sqlite3 *db, const char *full_hash)
         return -1;
     }
 
-    // Convert the full_hash to uppercase
-    char upper_hash[41]; // 40 hex characters + null terminator
-    for (int i = 0; i < strlen(full_hash); i++) 
-    {
-        upper_hash[i] = toupper(full_hash[i]);
-    }
-    upper_hash[40] = '\0'; // Ensure null termination
-
-    // Bind the full SHA1 hash to the query
-    sqlite3_bind_text(stmt, 1, upper_hash, -1, SQLITE_STATIC);
+    // Bind the binary hash to the query using BLOB
+    sqlite3_bind_blob(stmt, 1, binary_hash, 20, SQLITE_STATIC);
 
     // Execute the query
     rc = sqlite3_step(stmt);

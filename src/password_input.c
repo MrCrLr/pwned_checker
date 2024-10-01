@@ -12,6 +12,7 @@ char* get_password_input(int max_password_length) {
 
     do {
         printf("Enter your password: ");
+        fflush(stdout);
         set_echo(0); // Disable echoing to hide password input
 
         // Call the password masking function
@@ -82,4 +83,46 @@ char* resize_buffer(char *buffer, int *size) {
         return NULL;
     }
     return new_buffer;
+}
+
+// Function to modify terminal settings
+void set_input_mode(int enable) {
+    static struct termios oldt, newt;
+
+    if (enable == 0) {
+        // Get the terminal settings
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+
+        // Disable canonical mode and echoing
+        newt.c_lflag &= ~(ICANON | ECHO);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    } else {
+        // Restore the old settings
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    }
+}
+
+char get_yes_no_response() {
+    char response;
+
+    set_input_mode(0); // Disable echoing and canonical mode for immediate response handling
+    
+    printf("Do you want to check another password? (y/n): ");
+    fflush(stdout);  // Make sure the prompt is shown immediately
+
+    response = getchar();
+    printf("%c\n", response);
+
+    while (response != 'y' && response != 'n') {
+        printf("Invalid input. Please enter 'y' or 'n'.\n");
+        printf("Do you want to check another password? (y/n): ");
+        fflush(stdout);  // Ensure the prompt is displayed again before re-input
+
+        response = getchar();
+    }
+
+    set_input_mode(1); // Restore terminal settings
+
+    return tolower(response); // Normalize the response to lowercase and return
 }

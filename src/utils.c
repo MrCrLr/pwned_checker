@@ -1,24 +1,6 @@
 #include "program.h"
 
 /**
- * Converts a SHA1 hash to a hex string.
- * 
- * @param hash: The SHA1 hash (20 bytes).
- * @param output: The output buffer for the hex string (40 characters + null terminator).
- */
-void sha1_to_hex_string(const unsigned char *hash, char *output) {
-    if (hash == NULL || output == NULL) {
-        fprintf(stderr, "Error: Null pointer passed to sha1_to_hex_string.\n");
-        return; // Handle null pointer
-    }
-
-    for (int i = 0; i < 20; i++) {
-        snprintf(output + (i * 2), 3, "%02X", hash[i]);  // Convert each byte to hex
-    }
-    output[40] = '\0';  // Null-terminate the string
-}
-
-/**
  * Sets the terminal echo mode.
  * 
  * @param enable: If non-zero, enables echo; otherwise, disables it.
@@ -55,4 +37,25 @@ void signal_handler(int signum) {
 
 void cleanup() {
     set_echo(1); // Re-enable echoing before the program exits
+}
+
+void configure_terminal_for_immediate_input() {
+    struct termios tty;
+    tcgetattr(STDIN_FILENO, &tty);
+    tty.c_lflag &= ~(ICANON | ECHO); // Disable canonical mode and echo
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+}
+
+void restore_terminal_settings() {
+    struct termios tty;
+    tcgetattr(STDIN_FILENO, &tty);
+    tty.c_lflag |= (ICANON | ECHO); // Enable canonical mode and echo
+    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
+}
+
+char get_immediate_response() {
+    configure_terminal_for_immediate_input();
+    char response = getchar();
+    restore_terminal_settings();
+    return response;
 }

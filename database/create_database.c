@@ -1,5 +1,12 @@
 #include "create_database.h"
 
+// Utility function to convert a hex string to a binary array
+void hex_to_bin_sql(const char *hex, unsigned char *bin) {
+    for (int i = 0; i < 20; ++i) {
+        sscanf(hex + 2*i, "%2hhx", &bin[i]);  // Read 2 characters (1 byte)
+    }
+}
+
 // Function to create SQLite DB and load data from the pwned passwords file
 int create_pwned_db(const char *db_path, const char *pwned_file_path) {
     sqlite3 *db;
@@ -16,7 +23,7 @@ int create_pwned_db(const char *db_path, const char *pwned_file_path) {
 
     // Create the pwned passwords table if it doesn't exist
     const char *sql_create_table = "CREATE TABLE IF NOT EXISTS pwned_passwords("
-                                   "full_hash TEXT PRIMARY KEY,"
+                                   "full_hash BLOB PRIMARY KEY,"
                                    "count INTEGER);";
                                    
     rc = sqlite3_exec(db, sql_create_table, 0, 0, &err_msg);
@@ -69,11 +76,15 @@ int create_pwned_db(const char *db_path, const char *pwned_file_path) {
     char line[128];
     char hash[41]; // 40 characters for SHA1 hash + 1 for null-terminator
     int count;
+    unsigned char binary_hash[20];  // Binary storage for the 20-byte SHA1 hash
     while (fgets(line, sizeof(line), pwned_file)) {
         sscanf(line, "%40[^:]:%d", hash, &count); // Parse the hash and count
 
-        // Bind values to the SQL statement
-        sqlite3_bind_text(stmt, 1, hash, -1, SQLITE_STATIC);
+        // Convert the hex hash to binary
+        hex_to_bin_sql(hash, binary_hash);
+    
+        // Bind the binary hash (BLOB) to the SQL statement
+        sqlite3_bind_blob(stmt, 1, binary_hash, 20, SQLITE_STATIC);  // 20 bytes for the hash
         sqlite3_bind_int(stmt, 2, count);
 
         // Execute the SQL statement

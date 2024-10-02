@@ -1,8 +1,8 @@
-#Pwned Checker
+# Pwned Checker
 
 A C-based command-line tool to check if a given password has been compromised using the SHA-1 hashes from the Have I Been Pwned database. This program leverages an SQLite database to store and search through the list of pwned password hashes.
 
-#Features
+# Features
 
 • Secure password input: Passwords are masked during input, and memory is securely wiped after processing.
 
@@ -13,7 +13,7 @@ A C-based command-line tool to check if a given password has been compromised us
 • Multiple password checking: You can check multiple passwords in a single session.
 
 
-#Requirements
+# Requirements
 
 • GCC (or any other C compiler)
 
@@ -24,7 +24,7 @@ A C-based command-line tool to check if a given password has been compromised us
 • The pwnedpasswords.db file, created from the pwnedpasswords.txt file using create_database.
 
 
-Installation
+# Installation
 
 1. Clone the repository:
 
@@ -46,7 +46,7 @@ This will vary depending on the service; it could be done using a tool like the 
 
 ./bin/create_database database/pwnedpasswords.db resources/pwnedpasswords.txt
 
-#Usage
+# Usage
 
 Once the database is set up, you can run the checker program as follows:
 
@@ -72,7 +72,7 @@ Running multiple password checks:
 
 You can check multiple passwords in a single session. After checking a password, you will be prompted to enter another one or exit.
 
-#File Structure
+# File Structure
 
 pwned_checker/
 │
@@ -94,14 +94,14 @@ pwned_checker/
 └── README.md                   # This file
 
 
-#Security Considerations
+# Security Considerations
 
 • Memory Scrubbing: The program ensures sensitive information (like passwords) is scrubbed from memory before being freed.
 
 • Password Masking: The entered password is masked during input to prevent shoulder-surfing attacks.
 
 
-#Contributing
+# Contributing
 
 If you’d like to contribute to this project, feel free to open a pull request or issue. Improvements, especially regarding performance or security, are always welcome.
 

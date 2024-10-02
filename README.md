@@ -29,13 +29,11 @@ A C-based command-line tool to check if a given password has been compromised us
 1. Clone the repository:
 
 git clone https://github.com/heavenlyblues/pwned_checker.git
-
 cd pwned_checker
 
 2. Build the project:
 
 cd build
-
 make
 
 3. Download the pwned passwords data from the Have I Been Pwned service:
@@ -49,22 +47,16 @@ This will vary depending on the service; it could be done using a tool like the 
 # Usage
 
 Once the database is set up, you can run the checker program as follows:
-
 ./bin/pwned_checker
 
 Example:
 
 $ ./pwned_checker
-
 Enter your password: *****
-
 Password found in pwned list with 273646 occurrences!
-
 Check complete.
 
-
 Do you want to check another password? (y/n): n
-
 Exiting program.
 
 
@@ -99,6 +91,8 @@ deep_check.c # Performs the SQLite deep check of the password
 main.c # Main program logic
 
 password_input.c # Secure password input handling
+
+password_input_utils.c # Escape sequence handling and input utilities
 
 utils.c # Utility functions (secure memory handling, etc.)
 

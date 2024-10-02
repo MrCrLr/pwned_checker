@@ -28,7 +28,7 @@ A C-based command-line tool to check if a given password has been compromised us
 
 1. Clone the repository:
 
-git clone https://github.com/yourusername/pwned_checker.git
+git clone https://github.com/heavenlyblues/pwned_checker.git
 
 cd pwned_checker
 

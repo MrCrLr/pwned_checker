@@ -76,40 +76,37 @@ You can check multiple passwords in a single session. After checking a password,
 
 pwned_checker/
 
-│
+bin/ # Compiled executables
 
-├── bin/                        # Compiled executables
+build/ # Build directory with object files
 
-├── build/                      # Build directory with object files
+database/ # Source and pre-built SQLite database file
 
-├── database/                   # Source and pre-built SQLite database file
+create_database.c # Code to create the SQLite database
 
-│   ├── create_database.c       # Code to create the SQLite database
+pwnedpasswords.db # SQLite database (generated from pwnedpasswords.txt)
 
-│   ├── pwnedpasswords.db       # SQLite database (generated from pwnedpasswords.txt)
+include/ # Header files for the project
 
-├── include/                    # Header files for the project
+resources/ # Resources like the original password text file
 
-├── resources/                  # Resources like the original password text file
+pwnedpasswords.txt # Raw text file containing SHA-1 hashes
 
-│   └── pwnedpasswords.txt      # Raw text file containing SHA-1 hashes
+src/ # Source code
 
-├── src/                        # Source code
+deep_check.c # Performs the SQLite deep check of the password
 
-│   ├── deep_check.c            # Performs the SQLite deep check of the password
+main.c # Main program logic
 
-│   ├── main.c                  # Main program logic
+password_input.c # Secure password input handling
 
-│   ├── password_input.c        # Secure password input handling
+utils.c # Utility functions (secure memory handling, etc.)
 
-│   ├── utils.c                 # Utility functions (secure memory handling, etc.)
+lib/ # External libraries (optional)
 
-├── lib/                        # External libraries (optional)
+.gitignore # Files ignored by Git
 
-├── .gitignore                  # Files ignored by Git
-
-└── README.md                   # This file
-
+README.md # This file
 
 
 # Security Considerations

@@ -12,6 +12,8 @@ bin/
 
 # Ignore databases
 *.db
+resources/pwnedpasswords.txt
+resources/pwnedpasswords_small.txt
 
 # Ignore compiled libraries
 lib/

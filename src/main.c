@@ -17,27 +17,30 @@ int main() {
     const int maxPasswordLength = 100;
 
     do {
-        char *password = get_password_input(maxPasswordLength);
-        if (password == NULL) {
+        SecureBuffer securePassword = get_password_input(maxPasswordLength);
+        if (securePassword.buffer == NULL || securePassword.size == 0) {
             fprintf(stderr, "Failed to get password input. Please try again.\n");
             continue;
         }
 
         // Compute the SHA-1 hash of the password
         unsigned char hash[SHA_DIGEST_LENGTH];
-        SHA1((unsigned char*)password, strlen(password), hash);
+        SHA1((unsigned char*)securePassword.buffer, strlen(securePassword.buffer), hash);
         
         // Perform a deep check using the binary hash directly
         if (deep_check_password(db, (char *)hash) != 0) {
             fprintf(stderr, "Error during the deep check.\n");
         } else {
-            printf("Password check completed successfully.\n");
+            printf("Check complete.\n\n");
         }
 
-        free(password);
+        secure_free(securePassword.buffer, securePassword.size); // Securely free the password
+        securePassword.buffer = NULL; // Ensure pointer is cleared
         answer = get_yes_no_response();
 
     } while (answer == 'y');
+    
+    printf("Always use strong passwords. Goodbye!\n\n");
 
     sqlite3_close(db);
     return 0;

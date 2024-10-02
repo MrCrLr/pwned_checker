@@ -15,8 +15,14 @@
 // Memory allocation size for initial and incremental allocation
 #define PASSWORD_ALLOCATION 20
 
+typedef struct {
+    char* buffer;
+    int size;
+} SecureBuffer;
+
 // Function prototypes
-char* get_password_input(int max_password_length); // Get password input from the user
+void secure_free(char* buffer, int size);
+SecureBuffer get_password_input(int max_password_length); // Get password input from the user
 int read_and_mask_password(char **password, int *index, int *size); // Read password with masking
 char* resize_buffer(char *buffer, int *size); // Resize buffer for password storage
 

@@ -1,30 +1,42 @@
 #include "program.h"
 
-// Function to get password input with maximum length
-char* get_password_input(int max_password_length) {
-    int current_buffer_size = PASSWORD_ALLOCATION; 
-    char *password = malloc(current_buffer_size * sizeof(char));
-    if (password == NULL) {
-        fprintf(stderr, "Memory allocation failed for password input!\n");
-        return NULL;
+// Function to securely free password memory
+void secure_free(char* buffer, int size) {
+    if (buffer != NULL) {
+        memset(buffer, 0, size); // Overwrite the memory area with zeros
+        free(buffer); // Then free the memory
     }
-    int index = 0;
+}
+// Function to get password input with maximum length
+SecureBuffer get_password_input(int max_password_length) {
+    SecureBuffer secureBuf;
+    secureBuf.size = PASSWORD_ALLOCATION;
+    secureBuf.buffer = malloc(secureBuf.size * sizeof(char));
 
+    if (secureBuf.buffer == NULL) {
+        fprintf(stderr, "Memory allocation failed for password input!\n");
+        secureBuf.size = 0; // Set size to 0 to indicate failure
+        return secureBuf;
+    }
+
+    int index = 0;
     do {
         printf("Enter your password: ");
         fflush(stdout);
         set_echo(0); // Disable echoing to hide password input
 
         // Call the password masking function
-        int result = read_and_mask_password(&password, &index, &current_buffer_size);
+        int result = read_and_mask_password(&secureBuf.buffer, &index, &secureBuf.size);
         set_echo(1); // Re-enable echoing
         printf("\n");
 
         // Check for errors
         if (result == -1) {
             fprintf(stderr, "An error occurred during password input.\n");
-            free(password);
-            return NULL;
+            secure_free(secureBuf.buffer, secureBuf.size); // Securely free the password
+            secureBuf.buffer = NULL;
+            secureBuf.size = 0;
+            return secureBuf;
         } 
         else if (index == 0) {
             printf("Password cannot be empty. Please try again.\n");
@@ -35,21 +47,23 @@ char* get_password_input(int max_password_length) {
         }
     } while (index == 0 || index > max_password_length); // Repeat until valid input
 
-    password[index] = '\0'; // Null-terminate the string
-    return password; // Return the dynamically allocated password
+    secureBuf.buffer[index] = '\0'; // Null-terminate the string
+    return secureBuf; // Return the SecureBuffer with the password
 }
 
 // ----- Asterisk/Password Hide Function -----
 int read_and_mask_password(char **password, int *index, int *size) {
-    char ch;
-    while ((ch = getchar()) != '\n') {
+    int ch;
+    while ((ch = getchar()) != '\n' && ch != EOF) {
         // If the buffer is full, reallocate more space
         if (*index >= *size - 1) { 
-            *password = resize_buffer(*password, size);
-            if (*password == NULL) {
+            char* new_buffer = resize_buffer(*password, size);
+            if (new_buffer == NULL) {
                 fprintf(stderr, "Memory reallocation failed!\n");
-                return -1;  // Return error without freeing
+                secure_free(*password, *size); // Securely free the old buffer
+                return -1;
             }
+            *password = new_buffer;
         }
         
         // Handle backspace
@@ -59,18 +73,21 @@ int read_and_mask_password(char **password, int *index, int *size) {
                 printf("\b \b"); // Erase the last character
             }
         } 
-        // Allow only printable characters
-        else if (isprint(ch)) {
+        // Allow only printable characters, excluding space
+        else if (isprint(ch) && ch != ' ') {
             (*password)[(*index)++] = ch;
             printf("*"); // Mask input with asterisk
         } 
-        // Handle non-printable characters
+        // Ignore spaces completely, without breaking or printing errors
+        else if (ch == ' ') {
+            continue;  // Skip spaces completely
+        }
+        // Handle other non-printable characters
         else {
-            printf("\nInvalid character entered. Only printable characters are allowed.\n");
-            return -1;  // Return error if invalid character is encountered
+            continue;  // Skip other non-printable characters
         }
     }
-    return 0; // Success
+    return *index > 0 ? 0 : -2; // Return -2 if no valid input was collected, otherwise success
 }
 
 // Function to resize buffer
@@ -114,12 +131,12 @@ char get_yes_no_response() {
     response = getchar();
     printf("%c\n", response);
 
-    while (response != 'y' && response != 'n') {
-        printf("Invalid input. Please enter 'y' or 'n'.\n");
-        printf("Do you want to check another password? (y/n): ");
+    while (response != 'y' && response != 'Y' && response != 'n' && response != 'N') {
+        printf("Invalid input. Please enter 'y' or 'n': ");
         fflush(stdout);  // Ensure the prompt is displayed again before re-input
 
         response = getchar();
+        printf("%c\n", response);
     }
 
     set_input_mode(1); // Restore terminal settings

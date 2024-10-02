@@ -1,12 +1,19 @@
+#include "password_input.h"
+#include "password_input_utils.h"
 #include "program.h"
 
-// Function to securely free password memory
-void secure_free(char* buffer, int size) {
-    if (buffer != NULL) {
-        memset(buffer, 0, size); // Overwrite the memory area with zeros
-        free(buffer); // Then free the memory
+// Function to resize buffer
+char* resize_buffer(char *buffer, int *size) {
+    *size *= PASSWORD_ALLOCATION; // Increase buffer size
+    char *new_buffer = realloc(buffer, *size * sizeof(char));
+    if (new_buffer == NULL) {
+        fprintf(stderr, "Memory reallocation failed for buffer!\n");
+        free(buffer);
+        return NULL;
     }
+    return new_buffer;
 }
+
 // Function to get password input with maximum length
 SecureBuffer get_password_input(int max_password_length) {
     SecureBuffer secureBuf;
@@ -65,47 +72,14 @@ int read_and_mask_password(char **password, int *index, int *size) {
             }
             *password = new_buffer;
         }
-
-        // Handle escape sequences (Arrow keys, Page Up/Down, and Delete key)
-        if (ch == 27) { // Escape character
-            char next1 = getchar();
-            char next2 = getchar();
-            
-            // Arrow keys (A: up, B: down, C: right, D: left), Page Up/Down, and Delete
-            if (next1 == '[' && (next2 == 'A' || next2 == 'B' || next2 == 'C' || next2 == 'D' || 
-            next2 == 'F' || next2 == 'H' || next2 == '5' || next2 == '6' || next2 == '3')) {
-                // Arrow keys, Page Up/Down, Delete detected, ignore and continue
-                if (next2 == '3') getchar();  // Consume the extra '~' for Delete key
-                continue;
-            } else {
-                // Not a known escape sequence; put characters back in the buffer
-                ungetc(next2, stdin);
-                ungetc(next1, stdin);
-            }
-        }
+        // Function handling escape sequences (Arrow keys, Page Up/Down, and Delete key)
+        escape_sequence_handler(ch);
 
         // Handle backspace (ASCII 127 for backspace, '\b' for Ctrl+H backspace)
         if (ch == 127 || ch == '\b') {
             if (*index > 0) {
                 (*index)--;           // Reduce the index to remove the character
                 printf("\b \b");      // Erase the last character on the terminal
-            }
-        }
-        // Handle UTF-8 multibyte characters (allow UTF-8 input for special chars like é, ä, etc.)
-        else if ((unsigned char)ch >= 128) {
-            (*password)[(*index)++] = ch;  // Store the first byte of the multibyte sequence
-            printf("*");
-            int remaining_bytes = 0;
-
-            // Check how many more bytes are in the multibyte sequence
-            if ((ch & 0xE0) == 0xC0) remaining_bytes = 1;        // 2-byte sequence
-            else if ((ch & 0xF0) == 0xE0) remaining_bytes = 2;   // 3-byte sequence
-            else if ((ch & 0xF8) == 0xF0) remaining_bytes = 3;   // 4-byte sequence
-
-            // Collect the rest of the multibyte sequence
-            for (int i = 0; i < remaining_bytes; i++) {
-                ch = getchar();
-                (*password)[(*index)++] = ch;
             }
         }
         // Allow only printable ASCII characters between 33 ('!') and 126 ('~')
@@ -118,61 +92,33 @@ int read_and_mask_password(char **password, int *index, int *size) {
             continue;  // Ignore spaces
         }
     }
-    
     // Ensure that we return a failure code if no valid characters were input
     return *index > 0 ? 0 : -2; // Return -2 if no valid input was collected, otherwise success
 }
 
-// Function to resize buffer
-char* resize_buffer(char *buffer, int *size) {
-    *size *= PASSWORD_ALLOCATION; // Increase buffer size
-    char *new_buffer = realloc(buffer, *size * sizeof(char));
-    if (new_buffer == NULL) {
-        fprintf(stderr, "Memory reallocation failed for buffer!\n");
-        free(buffer);
-        return NULL;
-    }
-    return new_buffer;
-}
-
-// Function to modify terminal settings
-void set_input_mode(int enable) {
-    static struct termios oldt, newt;
-
-    if (enable == 0) {
-        // Get the terminal settings
-        tcgetattr(STDIN_FILENO, &oldt);
-        newt = oldt;
-
-        // Disable canonical mode and echoing
-        newt.c_lflag &= ~(ICANON | ECHO);
-        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    } else {
-        // Restore the old settings
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    }
-}
-
 char get_yes_no_response() {
     char response;
-
+    
     set_input_mode(0); // Disable echoing and canonical mode for immediate response handling
     
-    printf("Do you want to check another password? (y/n): ");
-    fflush(stdout);  // Make sure the prompt is shown immediately
+    while (1) { // Infinite loop until valid input is received
+        printf("Do you want to check another password? (y/n): ");
+        fflush(stdout);  // Ensure the prompt is shown immediately
+        
+        response = getchar(); // Get the first character
+        escape_sequence_handler(response);
 
-    response = getchar();
-    printf("%c\n", response);
+        // Check if the response is valid
+        if (response == 'y' || response == 'n' || response == 'Y' || response == 'N') {
+            printf("%c\n", response);
+            break; // Exit loop on valid input
+        }
 
-    while (response != 'y' && response != 'Y' && response != 'n' && response != 'N') {
-        printf("Invalid input. Please enter 'y' or 'n': ");
-        fflush(stdout);  // Ensure the prompt is displayed again before re-input
-
-        response = getchar();
-        printf("%c\n", response);
+        // Inform the user if the input was invalid
+        printf("Invalid input. Please enter 'y' or 'n'.\n");
     }
-
+    
     set_input_mode(1); // Restore terminal settings
-
+    
     return tolower(response); // Normalize the response to lowercase and return
 }

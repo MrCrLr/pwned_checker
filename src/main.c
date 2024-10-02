@@ -1,5 +1,7 @@
 #include "deep_check.h"
 #include "program.h"
+#include "password_input_utils.h"
+#include "password_input.h"
 
 int main() {
     // Initialize SQLite for deep check

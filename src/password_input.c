@@ -42,7 +42,7 @@ SecureBuffer get_password_input(int max_password_length) {
             printf("Password cannot be empty. Please try again.\n");
         } 
         else if (index > max_password_length) {
-            printf("Password exceeds maximum allowed length (%d characters). Please try again.\n", max_password_length);
+            printf("Password exceeds (%d characters). Please try again.\n", max_password_length);
             index = 0; // Reset index to allow re-entry
         }
     } while (index == 0 || index > max_password_length); // Repeat until valid input
@@ -53,7 +53,7 @@ SecureBuffer get_password_input(int max_password_length) {
 
 // ----- Asterisk/Password Hide Function -----
 int read_and_mask_password(char **password, int *index, int *size) {
-    int ch;
+    char ch;
     while ((ch = getchar()) != '\n' && ch != EOF) {
         // If the buffer is full, reallocate more space
         if (*index >= *size - 1) { 
@@ -65,28 +65,61 @@ int read_and_mask_password(char **password, int *index, int *size) {
             }
             *password = new_buffer;
         }
-        
-        // Handle backspace
+
+        // Handle escape sequences (Arrow keys, Page Up/Down, and Delete key)
+        if (ch == 27) { // Escape character
+            char next1 = getchar();
+            char next2 = getchar();
+            
+            // Arrow keys (A: up, B: down, C: right, D: left), Page Up/Down, and Delete
+            if (next1 == '[' && (next2 == 'A' || next2 == 'B' || next2 == 'C' || next2 == 'D' || 
+            next2 == 'F' || next2 == 'H' || next2 == '5' || next2 == '6' || next2 == '3')) {
+                // Arrow keys, Page Up/Down, Delete detected, ignore and continue
+                if (next2 == '3') getchar();  // Consume the extra '~' for Delete key
+                continue;
+            } else {
+                // Not a known escape sequence; put characters back in the buffer
+                ungetc(next2, stdin);
+                ungetc(next1, stdin);
+            }
+        }
+
+        // Handle backspace (ASCII 127 for backspace, '\b' for Ctrl+H backspace)
         if (ch == 127 || ch == '\b') {
             if (*index > 0) {
-                (*index)--;
-                printf("\b \b"); // Erase the last character
+                (*index)--;           // Reduce the index to remove the character
+                printf("\b \b");      // Erase the last character on the terminal
             }
-        } 
-        // Allow only printable characters, excluding space
-        else if (isprint(ch) && ch != ' ') {
-            (*password)[(*index)++] = ch;
-            printf("*"); // Mask input with asterisk
-        } 
-        // Ignore spaces completely, without breaking or printing errors
-        else if (ch == ' ') {
-            continue;  // Skip spaces completely
         }
-        // Handle other non-printable characters
-        else {
-            continue;  // Skip other non-printable characters
+        // Handle UTF-8 multibyte characters (allow UTF-8 input for special chars like é, ä, etc.)
+        else if ((unsigned char)ch >= 128) {
+            (*password)[(*index)++] = ch;  // Store the first byte of the multibyte sequence
+            printf("*");
+            int remaining_bytes = 0;
+
+            // Check how many more bytes are in the multibyte sequence
+            if ((ch & 0xE0) == 0xC0) remaining_bytes = 1;        // 2-byte sequence
+            else if ((ch & 0xF0) == 0xE0) remaining_bytes = 2;   // 3-byte sequence
+            else if ((ch & 0xF8) == 0xF0) remaining_bytes = 3;   // 4-byte sequence
+
+            // Collect the rest of the multibyte sequence
+            for (int i = 0; i < remaining_bytes; i++) {
+                ch = getchar();
+                (*password)[(*index)++] = ch;
+            }
+        }
+        // Allow only printable ASCII characters between 33 ('!') and 126 ('~')
+        else if (ch >= 33 && ch <= 126) {
+            (*password)[(*index)++] = ch;
+            printf("*");  // Mask input with asterisk
+        }
+        // Ignore spaces (ASCII 32)
+        else if (ch == ' ') {
+            continue;  // Ignore spaces
         }
     }
+    
+    // Ensure that we return a failure code if no valid characters were input
     return *index > 0 ? 0 : -2; // Return -2 if no valid input was collected, otherwise success
 }
 

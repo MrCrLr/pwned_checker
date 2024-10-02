@@ -1,0 +1,47 @@
+# Ignore object files and compiled binaries
+*.o
+*.out
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore build directory (compiled files)
+build/
+bin/
+
+# Ignore databases
+*.db
+
+# Ignore compiled libraries
+lib/
+
+# Ignore specific files related to macOS
+.DS_Store
+
+# Ignore IDE and editor files (common)
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.temp
+*.pid
+
+# Ignore backup and crash files
+*.crash
+*.stackdump
+
+# Ignore compression artifacts
+*.gz
+*.zip
+*.tar
+*.7z
+*.rar
+
+# Ignore system files and settings
+Thumbs.db

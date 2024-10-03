@@ -1,4 +1,4 @@
-#include "password_input_utils.h"
+#include "password_input.h"
 
 // Function to modify terminal settings
 void set_input_mode(int enable) {
@@ -18,36 +18,22 @@ void set_input_mode(int enable) {
     }
 }
 
-//  ----- Not printing characters and escape sequence handling -----
-void escape_sequence_handler(char keystroke) {
-    if (keystroke == 27) { // Escape character
-        char next1 = getchar();
-        
-        // Check if we have a valid escape sequence starting
-        if (next1 == '[') {
-            char next2 = getchar(); // Moved outside of if-block for correct scope
-            
-            // Arrow keys (A: up, B: down, C: right, D: left), Page Up/Down, and Delete
-            if (next2 == 'A' || next2 == 'B' || next2 == 'C' || next2 == 'D' || 
-                next2 == 'F' || next2 == 'H' || next2 == '5' || next2 == '6' || next2 == '3') {
-                
-                if (next2 == '3') getchar();  // Consume the extra '~' for the Delete key
-                return;  // Early exit after handling the escape sequence
-            } else {
-                // Not a known escape sequence; put characters back in the buffer
-                ungetc(next2, stdin);
-            }
+char get_yes_no_response() {
+    set_input_mode(0); // Disable echoing and canonical mode for immediate response handling
+    
+    printf("Do you want to check another password? (y/n): ");
+    char response;
+
+    while (1) { // Infinite loop until valid input is received
+        fflush(stdout);  // Ensure the prompt is shown immediately
+
+        response = getchar(); // Get the first character
+
+        if (response == 'y' || response == 'n' || response == 'Y' || response == 'N') {
+            printf("%c\n", response);
+            break; // Exit loop on valid input
         }
-
-        // Not an escape sequence; put the first character back in the buffer
-        ungetc(next1, stdin);
-    } 
-}
-
-// Function to securely free password memory
-void secure_free(char* buffer, int size) {
-    if (buffer != NULL) {
-        memset(buffer, 0, size); // Overwrite the memory area with zeros
-        free(buffer); // Then free the memory
     }
+    set_input_mode(1); // Restore terminal settings
+    return tolower(response); // Normalize the response to lowercase and return
 }

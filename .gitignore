@@ -46,3 +46,6 @@ lib/
 
 # Ignore system files and settings
 Thumbs.db
+
+# Ignore misc
+demo/

@@ -1,10 +1,22 @@
 #include "program.h"
 
 /**
- * Sets the terminal echo mode.
+ *  Sets the terminal echo mode. 
  * 
- * @param enable: If non-zero, enables echo; otherwise, disables it.
- * @return: 0 on success, -1 on error.
+ *  Parameter enable: If non-zero, enables echo; otherwise, disables it.
+ *  Return: 0 on success, -1 on error.
+ * 
+ * 	tty.c_lflag: This is the “local flags” field of the termios structure. 
+ *  It controls various terminal settings.
+ * 
+ *	Bitwise AND (&=) and Bitwise OR (|=): These operations are manipulating  
+ *  specific bits in the c_lflag field that correspond to the ECHO and ICANON flags.
+ * 
+ *	Disabling: The expression tty.c_lflag &= ~(ECHO | ICANON) 
+ *  clears the ECHO and ICANON bits (disabling echo and canonical mode).
+ * 
+ *	Enabling: The expression tty.c_lflag |= (ECHO | ICANON) 
+ *  sets the ECHO and ICANON bits (enabling echo and canonical mode).
  */
 int set_echo(int enable) {
     struct termios tty;
@@ -37,25 +49,4 @@ void signal_handler(int signum) {
 
 void cleanup() {
     set_echo(1); // Re-enable echoing before the program exits
-}
-
-void configure_terminal_for_immediate_input() {
-    struct termios tty;
-    tcgetattr(STDIN_FILENO, &tty);
-    tty.c_lflag &= ~(ICANON | ECHO); // Disable canonical mode and echo
-    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
-}
-
-void restore_terminal_settings() {
-    struct termios tty;
-    tcgetattr(STDIN_FILENO, &tty);
-    tty.c_lflag |= (ICANON | ECHO); // Enable canonical mode and echo
-    tcsetattr(STDIN_FILENO, TCSANOW, &tty);
-}
-
-char get_immediate_response() {
-    configure_terminal_for_immediate_input();
-    char response = getchar();
-    restore_terminal_settings();
-    return response;
 }

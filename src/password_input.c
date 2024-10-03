@@ -97,25 +97,28 @@ int read_and_mask_password(char **password, int *index, int *size) {
 }
 
 char get_yes_no_response() {
-    char response;
-    
     set_input_mode(0); // Disable echoing and canonical mode for immediate response handling
     
+    printf("Do you want to check another password? (y/n): ");
+    char response;
+    int count = 0;
+
     while (1) { // Infinite loop until valid input is received
-        printf("Do you want to check another password? (y/n): ");
         fflush(stdout);  // Ensure the prompt is shown immediately
-        
+
         response = getchar(); // Get the first character
-        escape_sequence_handler(response);
 
         // Check if the response is valid
         if (response == 'y' || response == 'n' || response == 'Y' || response == 'N') {
             printf("%c\n", response);
             break; // Exit loop on valid input
+        } else {
+            count++;
         }
-
-        // Inform the user if the input was invalid
-        printf("Invalid input. Please enter 'y' or 'n'.\n");
+        
+        if (count > 4) {
+            printf("\nPlease enter 'Y' for yes or 'N' for no. ");
+        }
     }
     
     set_input_mode(1); // Restore terminal settings

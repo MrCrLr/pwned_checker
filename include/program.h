@@ -16,8 +16,5 @@ void clear_input_buffer();
 void signal_handler(int signum); // Handle signals (e.g., Ctrl+C)
 void cleanup(); // Cleanup resources
 int set_echo(int enable); // Enable/disable password echoing
-void configure_terminal_for_immediate_input();
-void restore_terminal_settings();
-char get_immediate_response();
 
 #endif

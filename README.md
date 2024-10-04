@@ -1,16 +1,20 @@
-# Pwned Checker
+## Pwned Checker
 
-A C-based command-line tool to check if a given password has been compromised using the SHA-1 hashes from the Have I Been Pwned database. This program leverages an SQLite database to store and search through the list of pwned password hashes.
+Pwned Checker is a C-based command-line application designed to help individuals determine if their passwords have been compromised and exposed in known data breaches. This tool uses the SHA-1 hash algorithm to compare entered passwords against a comprehensive database of compromised credentials provided by the Have I Been Pwned (HIBP) service. The core functionality of Pwned Checker utilizes an SQLite database, which stores over 930 million pwned password hashes with the number of times each has appeared. This project is crafted to offer both security and efficiency, ensuring that user inputs are handled securely while maintaining high-performance database queries.
 
-# Features
+The Pwned Checker project provides a command-line interface where users can enter their passwords. It includes several C source files, each serving a distinct role from managing database connections, handling user input securely, to performing the checks necessary to assess password security. This README aims to guide you through the project’s functionality, setup, and use, explaining the purpose behind each component and the design choices made during development.
 
-• Secure password input: Passwords are masked during input, and memory is securely wiped after processing.
+# Secure Password Input
 
-• Deep password check: The program uses SHA-1 hashes to query a pre-built SQLite database to check if the password has been compromised.
+Pwned Checker prioritizes security in its operations. The program masks all password inputs during the entry process to ensure that passwords are never displayed on the screen, reducing the risk of over-the-shoulder attacks. Furthermore, once a password is processed, its memory representation is securely wiped to prevent any chance of memory-based attacks. This feature leverages custom functions that overwrite and then free the memory used to store password data.
 
-• Efficient query performance: Indexed queries ensure that even large databases of passwords can be searched quickly.
+# Deep Password Check
 
-• Multiple password checking: You can check multiple passwords in a single session.
+Utilizing the SHA-1 hashing algorithm, Pwned Checker transforms the user’s password into a hash and queries an SQLite database to check if this hash has previously been exposed in a data breach. This database query is optimized through the use of indexes, ensuring that even the large datasets (nearly one billion(!) records) are quickly searchable. The hash comparison is done securely on the user’s local machine to ensure that the actual password never leaves the system, thereby maintaining user privacy and security.
+
+# Multiple Password Checking
+
+Pwned Checker supports checking multiple passwords in a single session. After the user's entry, the application reponds with whether or not the password has appeared in a data breach and, if so, the number of times. The program then promptly asks the user if they would like to check another.
 
 
 # Requirements
@@ -60,9 +64,6 @@ Do you want to check another password? (y/n): n
 Exiting program.
 
 
-Running multiple password checks:
-
-You can check multiple passwords in a single session. After checking a password, you will be prompted to enter another one or exit.
 
 # File Structure
 
@@ -99,11 +100,6 @@ utils.c # Escape sequence handling and input utilities
 README.md # This file
 
 
-# Security Considerations
-
-• Memory Scrubbing: The program ensures sensitive information (like passwords) is scrubbed from memory before being freed.
-
-• Password Masking: The entered password is masked during input to prevent shoulder-surfing attacks.
 
 
 # Contributing

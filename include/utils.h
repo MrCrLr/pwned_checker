@@ -2,7 +2,7 @@
 #define UTILS_H
 
 #include <stdio.h>      // For printf, fprintf, stderr
-#include <string.h>
+//#include <string.h>
 #include <stdlib.h>     // For exit, atexit
 #include <signal.h>     // For signal handling (signal, SIGINT, SIGTERM)
 #include <termios.h>    // For terminal control (struct termios, tcgetattr, tcsetattr)

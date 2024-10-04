@@ -13,7 +13,6 @@ TARGET = $(BIN_DIR)/pwned_checker
 
 # Source files
 SRCS = $(SRC_DIR)/main.c \
-	   $(SRC_DIR)/password_input_utils.c \
        $(SRC_DIR)/password_input.c \
        $(SRC_DIR)/utils.c \
        $(SRC_DIR)/deep_check.c \

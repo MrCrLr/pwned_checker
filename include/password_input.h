@@ -21,9 +21,7 @@ char* resize_buffer(char *buffer, int *size); // Resize buffer for password leng
 
 SecureBuffer get_password_input(int max_password_length); // Get password input with maximum length
 int read_and_mask_password(char **password, int *index, int *size); // Asterisk/Password Hide Function
-void escape_sequence_handler(char keystroke);
-
-void set_input_mode(int enable); // Function to modify terminal settings
+void escape_sequence_handler(char keystroke); // Checks for non-printing characters and handles escape sequences
 char get_yes_no_response(); // Returns whether use want to check another password
 
 void secure_free(char* buffer, int size); // Function to securely free password memory

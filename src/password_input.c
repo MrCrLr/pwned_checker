@@ -128,3 +128,23 @@ void escape_sequence_handler(char keystroke) {
         ungetc(next1, stdin);
     } 
 }
+
+char get_yes_no_response() {
+    set_echo(0); // Disable echoing and canonical mode for immediate response handling
+    
+    printf("Do you want to check another password? (y/n): ");
+    char response;
+
+    while (1) { // Infinite loop until valid input is received
+        fflush(stdout);  // Ensure the prompt is shown immediately
+
+        response = getchar(); // Get the first character
+
+        if (response == 'y' || response == 'n' || response == 'Y' || response == 'N') {
+            printf("%c\n", response);
+            break; // Exit loop on valid input
+        }
+    }
+    set_echo(1); // Restore terminal settings
+    return tolower(response); // Normalize the response to lowercase and return
+}

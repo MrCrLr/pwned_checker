@@ -5,6 +5,8 @@
 *.dll
 *.so
 *.dylib
+__pycache__/
+*.py[cod]
 
 # Ignore build directory (compiled files)
 bin/
@@ -19,6 +21,17 @@ lib/
 
 # Ignore specific files related to macOS
 .DS_Store
+
+# Virtual environment directories
+env/
+venv/
+.Venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Pytest cache
+.pytest_cache/
 
 # Ignore IDE and editor files (common)
 .vscode/
@@ -49,3 +62,4 @@ Thumbs.db
 
 # Ignore misc
 demo/
+backups/

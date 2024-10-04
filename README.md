@@ -1,23 +1,23 @@
-## Pwned Checker
+# Pwned Checker
 
 Pwned Checker is a C-based command-line application designed to help individuals determine if their passwords have been compromised and exposed in known data breaches. This tool uses the SHA-1 hash algorithm to compare entered passwords against a comprehensive database of compromised credentials provided by the Have I Been Pwned (HIBP) service. The core functionality of Pwned Checker utilizes an SQLite database, which stores over 930 million pwned password hashes with the number of times each has appeared. This project is crafted to offer both security and efficiency, ensuring that user inputs are handled securely while maintaining high-performance database queries.
 
 The Pwned Checker project provides a command-line interface where users can enter their passwords. It includes several C source files, each serving a distinct role from managing database connections, handling user input securely, to performing the checks necessary to assess password security. This README aims to guide you through the project’s functionality, setup, and use, explaining the purpose behind each component and the design choices made during development.
 
-# Secure Password Input
+## Secure Password Input
 
 Pwned Checker prioritizes security in its operations. The program masks all password inputs during the entry process to ensure that passwords are never displayed on the screen, reducing the risk of over-the-shoulder attacks. Furthermore, once a password is processed, its memory representation is securely wiped to prevent any chance of memory-based attacks. This feature leverages custom functions that overwrite and then free the memory used to store password data.
 
-# Deep Password Check
+## Deep Password Check
 
 Utilizing the SHA-1 hashing algorithm, Pwned Checker transforms the user’s password into a hash and queries an SQLite database to check if this hash has previously been exposed in a data breach. This database query is optimized through the use of indexes, ensuring that even the large datasets (nearly one billion(!) records) are quickly searchable. The hash comparison is done securely on the user’s local machine to ensure that the actual password never leaves the system, thereby maintaining user privacy and security.
 
-# Multiple Password Checking
+## Multiple Password Checking
 
 Pwned Checker supports checking multiple passwords in a single session. After the user's entry, the application reponds with whether or not the password has appeared in a data breach and, if so, the number of times. The program then promptly asks the user if they would like to check another.
 
 
-# Requirements
+## Requirements
 
 • GCC (or any other C compiler)
 
@@ -28,7 +28,7 @@ Pwned Checker supports checking multiple passwords in a single session. After th
 • The pwnedpasswords.db file, created from the pwnedpasswords.txt file using create_database.
 
 
-# Installation
+## Installation
 
 1. Clone the repository:
 
@@ -48,7 +48,7 @@ This will vary depending on the service; it could be done using a tool like the 
 
 ./bin/create_database database/pwnedpasswords.db resources/pwnedpasswords.txt
 
-# Usage
+## Usage
 
 Once the database is set up, you can run the checker program as follows:
 ./bin/pwned_checker
@@ -65,7 +65,7 @@ Exiting program.
 
 
 
-# File Structure
+## File Structure
 
 pwned_checker/
 
@@ -102,7 +102,7 @@ README.md # This file
 
 
 
-# Contributing
+## Contributing
 
 If you’d like to contribute to this project, feel free to open a pull request or issue. Improvements, especially regarding performance or security, are always welcome.
 

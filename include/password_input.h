@@ -12,6 +12,15 @@
 // Memory allocation size for initial and incremental allocation
 #define PASSWORD_ALLOCATION 20
 
+/**
+ * Struct representing a buffer that holds password securely.
+ * Includes a pointer to a dynamically allocated buffer and an integer representing
+ * the size of the buffer. 
+ *
+ * Components:
+ * - buffer (char*): A pointer to the character array that holds the sensitive data.
+ * - size (int): The size of the buffer in bytes. 
+ */
 typedef struct {
     char* buffer;
     int size;
@@ -20,9 +29,9 @@ typedef struct {
 char* resize_buffer(char *buffer, int *size); // Resize buffer for password length
 
 SecureBuffer get_password_input(int max_password_length); // Get password input with maximum length
-int read_and_mask_password(char **password, int *index, int *size); // Asterisk/Password Hide Function
+int read_and_mask_password(char **password, int *index, int *size); // Reads and hides user input
 void escape_sequence_handler(char keystroke); // Checks for non-printing characters and handles escape sequences
-char get_yes_no_response(); // Returns whether use want to check another password
+char get_yes_no_response(); // Returns whether user want to check another password
 
 void secure_free(char* buffer, int size); // Function to securely free password memory
 

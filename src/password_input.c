@@ -1,9 +1,30 @@
 #include "password_input.h"
 #include "utils.h"
 
-// Function to resize password buffer
+/**
+ * Resizes a given buffer to accommodate additional data.
+ *
+ * This function is designed to dynamically increase the size of a password buffer
+ * when its current capacity is exceeded. The buffer's size is increased by a
+ * factor defined by PASSWORD_ALLOCATION. It uses `realloc` to adjust the size,
+ * allowing for additional data without losing existing data.
+ *
+ * Parameters:
+ * - buffer (char*): Pointer to the current buffer whose size needs to be increased.
+ * - size (int*): Pointer to the current size of the buffer. This value will be
+ *   updated to reflect the new size after resizing.
+ *
+ * Return:
+ * - char*: Pointer to the resized buffer. Returns NULL if the memory allocation
+ *   fails, after freeing the original buffer to avoid memory leaks.
+ *
+ * Note:
+ * - It's crucial to check the return value of this function for NULL to ensure
+ *   that the memory allocation was successful before proceeding with further
+ *   operations on the buffer.
+ */
 char* resize_buffer(char *buffer, int *size) {
-    *size *= PASSWORD_ALLOCATION; // Increase buffer size
+    *size += PASSWORD_ALLOCATION; // Increase the current size by allocation
     char *new_buffer = realloc(buffer, *size * sizeof(char));
     if (new_buffer == NULL) {
         fprintf(stderr, "Memory reallocation failed for buffer!\n");
@@ -13,41 +34,78 @@ char* resize_buffer(char *buffer, int *size) {
     return new_buffer;
 }
 
-// Function to securely free password memory
+/**
+ * Securely frees memory allocated for sensitive data.
+ *
+ * This function ensures that sensitive data such as passwords are wiped from
+ * memory before the memory is freed. This is done by overwriting the memory
+ * area with zeros before calling `free`, reducing the risk of sensitive data
+ * being accessible in memory after deallocation.
+ *
+ * Parameters:
+ * - buffer (char*): Pointer to the memory to be freed.
+ * - size (int): Size of the buffer to be cleared.
+ *
+ * Note:
+ * - This function should be used instead of `free` for all buffers that
+ *   hold sensitive information to enhance security.
+ */
 void secure_free(char* buffer, int size) {
     if (buffer != NULL) {
-        memset(buffer, 0, size); // Overwrite the memory area with zeros
-        free(buffer); // Then free the memory
+        memset(buffer, 0, size); // Overwrite with zeros to clear sensitive data
+        free(buffer); // Free the memory
     }
 }
 
-// Prompts user for pw and returns input – calls other functions to mask input
+/**
+ * Prompts the user to enter a password and returns the securely stored input.
+ *
+ * This function handles user input for passwords, ensuring the input is masked (not displayed),
+ * stored securely, and dynamically resized if the initial buffer is not sufficient.
+ * The function will repeatedly prompt the user until a valid password is entered or
+ * the entered password exceeds the specified maximum length.
+ *
+ * Parameters:
+ * - max_password_length (int): Maximum acceptable password length. If the entered
+ *   password exceeds this length, the user is prompted to enter a shorter password.
+ *
+ * Returns:
+ * - SecureBuffer: A struct containing the entered password and its length. If an
+ *   error occurs during input (e.g., memory allocation fails), the size attribute
+ *   of the returned struct is set to 0.
+ *
+ * Usage:
+ * - The returned SecureBuffer must be checked to ensure its size is not 0 before
+ *   using the password. The buffer should be securely freed using `secure_free`
+ *   when no longer needed.
+ */
 SecureBuffer get_password_input(int max_password_length) {
     SecureBuffer secureBuf;
-    secureBuf.size = PASSWORD_ALLOCATION;
+    secureBuf.size = PASSWORD_ALLOCATION; // Initial buffer size
     secureBuf.buffer = malloc(secureBuf.size * sizeof(char));
 
     if (secureBuf.buffer == NULL) {
         fprintf(stderr, "Memory allocation failed for password input!\n");
-        secureBuf.size = 0; // Set size to 0 to indicate failure
+        secureBuf.size = 0; // Indicate failure
         return secureBuf;
     }
 
     int index = 0;
+    // Main loop to handle password input and re-prompts
     do {
         printf("Enter your password: ");
         fflush(stdout);
-        set_echo(0); // Disable echoing to hide password input
+        set_echo(0); // Disable echoing for password input
 
         // Call the password masking function
         int result = read_and_mask_password(&secureBuf.buffer, &index, &secureBuf.size);
         set_echo(1); // Re-enable echoing
         printf("\n");
 
-        // Check for errors
+        // Handle potential errors
         if (result == -1) {
             fprintf(stderr, "An error occurred during password input.\n");
-            secure_free(secureBuf.buffer, secureBuf.size); // Securely free the password
+            secure_free(secureBuf.buffer, secureBuf.size);
             secureBuf.buffer = NULL;
             secureBuf.size = 0;
             return secureBuf;
@@ -65,7 +123,33 @@ SecureBuffer get_password_input(int max_password_length) {
     return secureBuf; // Return the SecureBuffer with the password
 }
 
-// Asterisk/Password Hide Function
+/**
+ * Reads and masks password input from the user in a secure manner.
+ *
+ * This function prompts the user to enter their password, which is then read one character
+ * at a time. Each character is masked by an asterisk (*) to prevent password visibility
+ * when typed into a terminal. The function handles special characters such as backspace
+ * for user corrections and ignores non-printable characters except those in the printable
+ * ASCII range (33 to 126). It also manages dynamic buffer resizing to accommodate passwords
+ * longer than the initial buffer size.
+ *
+ * Escape sequences (like arrow keys, page up/down, and delete) are processed and ignored
+ * to prevent them from being included in the password buffer.
+ *
+ * Input:
+ * - **password**: A pointer to a character array where the password will be stored.
+ * - **index**: A pointer to the current position in the password buffer.
+ * - **size**: A pointer to the total size of the password buffer.
+ *
+ * Output:
+ * - The function returns 0 on successful capture of a non-empty password.
+ * - Returns -1 if a memory reallocation fails during input handling.
+ * - Returns -2 if no valid characters were input (the buffer remains empty).
+ *
+ * Note:
+ * The function uses getchar() to read input, and thus operates on a character-by-character
+ * basis, suitable for console applications where line buffering is disabled.
+ */
 int read_and_mask_password(char **password, int *index, int *size) {
     char ch;
     while ((ch = getchar()) != '\n' && ch != EOF) {

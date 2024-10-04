@@ -1,7 +1,7 @@
 #include "utils.h"
 
 /**
- *  Sets the terminal echo mode. 
+ *  Sets the terminal echo mode. I receive help from ChatGPT to understand.
  * 
  *  Parameter enable: If non-zero, enables echo; otherwise, disables it.
  *  Return: 0 on success, -1 on error.

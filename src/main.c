@@ -4,8 +4,9 @@
 
 int main() {
     // Initialize SQLite for deep check
-    sqlite3 *db;
-    if (init_db(&db, "database/pwnedpasswords.db") != 0) {
+    sqlite3 *db = NULL;
+    const char *db_path = "database/pwnedpasswords.db";
+    if (init_db(&db, db_path) != 0) {
         fprintf(stderr, "Failed to initialize the database.\n");
         return 1;
     }

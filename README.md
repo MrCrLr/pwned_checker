@@ -1,6 +1,9 @@
-# Pwned Checker
+# PWNED CHECKER
+#### Video Demo: https://youtu.be/3UGi0ikbMjU
 
-Pwned Checker is a C-based command-line application designed to help individuals determine if their passwords have been compromised and exposed in known data breaches. This tool uses the SHA-1 hash algorithm to compare entered passwords against a comprehensive database of compromised credentials provided by the Have I Been Pwned (HIBP) service. The core functionality of Pwned Checker utilizes an SQLite database, which stores over 930 million pwned password hashes with the number of times each has appeared. This project is crafted to offer both security and efficiency, ensuring that user inputs are handled securely while maintaining high-performance database queries.
+#### Description: Pwned Checker is a C-based command-line application designed to help individuals determine if their passwords have been compromised and exposed in known data breaches. 
+
+This tool uses the SHA-1 hash algorithm to compare entered passwords against a comprehensive database of compromised credentials provided by the Have I Been Pwned (HIBP) service. The core functionality of Pwned Checker utilizes an SQLite database, which stores over 930 million pwned password hashes with the number of times each has appeared. This project is crafted to offer both security and efficiency, ensuring that user inputs are handled securely while maintaining high-performance database queries.
 
 The Pwned Checker project provides a command-line interface where users can enter their passwords. It includes several C source files, each serving a distinct role from managing database connections, handling user input securely, to performing the checks necessary to assess password security. This README aims to guide you through the project’s functionality, setup, and use, explaining the purpose behind each component and the design choices made during development.
 
@@ -30,21 +33,21 @@ Pwned Checker supports checking multiple passwords in a single session. After th
 
 ## Installation
 
-1. Clone the repository:
+### 1. Clone the repository:
 
 git clone https://github.com/heavenlyblues/pwned_checker.git
 cd pwned_checker
 
-2. Build the project:
+### 2. Build the project:
 
 cd build
 make
 
-3. Download the pwned passwords data from the Have I Been Pwned service:
+### 3. Download the pwned passwords data from the Have I Been Pwned service:
 
 This will vary depending on the service; it could be done using a tool like the haveibeenpwned-downloader.
 
-4. Create the SQLite database:
+### 4. Create the SQLite database:
 
 ./bin/create_database database/pwnedpasswords.db resources/pwnedpasswords.txt
 
@@ -53,7 +56,7 @@ This will vary depending on the service; it could be done using a tool like the 
 Once the database is set up, you can run the checker program as follows:
 ./bin/pwned_checker
 
-Example:
+**Example:**
 
 $ ./pwned_checker
 Enter your password: *****
@@ -67,46 +70,54 @@ Exiting program.
 
 ## File Structure
 
-pwned_checker/
+### pwned_checker/
 
-bin/ # Compiled executables
+**bin/** # Compiled executables
 
-build/ # Build directory with object files
+**build/** # Build directory with object files
 
-database/ # Source and pre-built SQLite database file
+**database/** # Source and pre-built SQLite database file
 
-create_database_main.c # Main to run database creation
+---create_database_main.c # Main to run database creation
 
-create_database.c # Code to create the SQLite database
+---create_database.c # Code to create the SQLite database
 
-pwnedpasswords.db # SQLite database (generated from pwnedpasswords.txt)
+---create_database.h
 
-include/ # Header files for the project
+**include/** # Header files for the project
 
-resources/ # Resources like the original password text file
+---deep_check.h
 
-pwnedpasswords.txt # Raw text file containing SHA-1 hashes
+---password_input.h
 
-src/ # Source code
+---utils.h
 
-deep_check.c # Performs the SQLite deep check of the password
+**python_ver/** # Just for fun copy of the program in python
 
-main.c # Main program logic
+---main.py
 
-password_input.c # Secure password input and memory handling
+---utils.py
 
-utils.c # Escape sequence handling and input utilities
+**src/** # Source code
+
+---deep_check.c # Performs the SQLite deep check of the password
+
+---main.c # Main program logic
+
+---password_input.c # Secure password input and memory handling
+
+---utils.c # Escape sequence handling and input utilities
 
 README.md # This file
 
 
 
 
-## Contributing
+### Contributing
 
 If you’d like to contribute to this project, feel free to open a pull request or issue. Improvements, especially regarding performance or security, are always welcome.
 
 
-License
+### License
 
 This project is licensed under the MIT License. See the LICENSE file for details.

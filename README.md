@@ -74,6 +74,8 @@ build/ # Build directory with object files
 
 database/ # Source and pre-built SQLite database file
 
+create_database_main.c # Main to run database creation
+
 create_database.c # Code to create the SQLite database
 
 pwnedpasswords.db # SQLite database (generated from pwnedpasswords.txt)
@@ -90,15 +92,9 @@ deep_check.c # Performs the SQLite deep check of the password
 
 main.c # Main program logic
 
-password_input.c # Secure password input handling
+password_input.c # Secure password input and memory handling
 
-password_input_utils.c # Escape sequence handling and input utilities
-
-utils.c # Utility functions (secure memory handling, etc.)
-
-lib/ # External libraries (optional)
-
-.gitignore # Files ignored by Git
+utils.c # Escape sequence handling and input utilities
 
 README.md # This file
 

@@ -9,7 +9,7 @@
 #include <ctype.h>
 
 // Function to perform a deep check using full SHA1 hash
-int deep_check_password(sqlite3 *db, const char *full_hash);
+int deep_check_password(sqlite3 *db, unsigned const char *full_hash);
 
 // Function to initialize the SQLite database (if needed)
 int init_db(sqlite3 **db, const char *db_path);

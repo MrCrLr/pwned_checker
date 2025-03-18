@@ -49,7 +49,7 @@ int init_db(sqlite3 **db, const char *db_path) {
  * - Ensure that the SQL statement correctly matches the schema of the 'pwned_passwords' table.
  * - This function handles all cleanup of the SQL statement to prevent memory leaks.
  */
-int deep_check_password(sqlite3 *db, const char *binary_hash) 
+int deep_check_password(sqlite3 *db, const unsigned char *binary_hash) 
 {
     sqlite3_stmt *stmt;
     int rc;

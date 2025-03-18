@@ -23,9 +23,9 @@
  *   that the memory allocation was successful before proceeding with further
  *   operations on the buffer.
  */
-char* resize_buffer(char *buffer, int *size) {
+unsigned char* resize_buffer(unsigned char *buffer, int *size) {
     *size += PASSWORD_ALLOCATION; // Increase the current size by allocation
-    char *new_buffer = realloc(buffer, *size * sizeof(char));
+    unsigned char *new_buffer = realloc(buffer, *size * sizeof(unsigned char));
     if (new_buffer == NULL) {
         fprintf(stderr, "Memory reallocation failed for buffer!\n");
         free(buffer);
@@ -50,7 +50,7 @@ char* resize_buffer(char *buffer, int *size) {
  * - This function should be used instead of `free` for all buffers that
  *   hold sensitive information to enhance security.
  */
-void secure_free(char* buffer, int size) {
+void secure_free(unsigned char* buffer, int size) {
     if (buffer != NULL) {
         memset(buffer, 0, size); // Overwrite with zeros to clear sensitive data
         free(buffer); // Free the memory
@@ -82,7 +82,7 @@ void secure_free(char* buffer, int size) {
 SecureBuffer get_password_input(int max_password_length) {
     SecureBuffer secureBuf;
     secureBuf.size = PASSWORD_ALLOCATION; // Initial buffer size
-    secureBuf.buffer = malloc(secureBuf.size * sizeof(char));
+    secureBuf.buffer = malloc(secureBuf.size * sizeof(unsigned char));
 
     if (secureBuf.buffer == NULL) {
         fprintf(stderr, "Memory allocation failed for password input!\n");
@@ -150,12 +150,12 @@ SecureBuffer get_password_input(int max_password_length) {
  * The function uses getchar() to read input, and thus operates on a character-by-character
  * basis, suitable for console applications where line buffering is disabled.
  */
-int read_and_mask_password(char **password, int *index, int *size) {
+int read_and_mask_password(unsigned char **password, int *index, int *size) {
     char ch;
     while ((ch = getchar()) != '\n' && ch != EOF) {
         // If the buffer is full, reallocate more space
         if (*index >= *size - 1) { 
-            char* new_buffer = resize_buffer(*password, size);
+            unsigned char* new_buffer = resize_buffer(*password, size);
             if (new_buffer == NULL) {
                 fprintf(stderr, "Memory reallocation failed!\n");
                 secure_free(*password, *size); // Securely free the old buffer

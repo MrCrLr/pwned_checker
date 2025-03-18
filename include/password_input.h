@@ -22,17 +22,17 @@
  * - size (int): The size of the buffer in bytes. 
  */
 typedef struct {
-    char* buffer;
+    unsigned char* buffer;
     int size;
 } SecureBuffer;
 
-char* resize_buffer(char *buffer, int *size); // Resize buffer for password length
+unsigned char* resize_buffer(unsigned char *buffer, int *size); // Resize buffer for password length
 
 SecureBuffer get_password_input(int max_password_length); // Get password input with maximum length
-int read_and_mask_password(char **password, int *index, int *size); // Reads and hides user input
+int read_and_mask_password(unsigned char **password, int *index, int *size); // Reads and hides user input
 void escape_sequence_handler(char keystroke); // Checks for non-printing characters and handles escape sequences
 char get_yes_no_response(); // Returns whether user want to check another password
 
-void secure_free(char* buffer, int size); // Function to securely free password memory
+void secure_free(unsigned char* buffer, int size); // Function to securely free password memory
 
 #endif

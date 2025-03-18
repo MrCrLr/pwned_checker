@@ -27,10 +27,10 @@ int main() {
 
         // Compute the SHA-1 hash of the password
         unsigned char hash[SHA_DIGEST_LENGTH];
-        SHA1((unsigned char*)securePassword.buffer, strlen(securePassword.buffer), hash);
+        SHA1(securePassword.buffer, securePassword.buffer, hash);
         
         // Perform a deep check using the binary hash directly
-        if (deep_check_password(db, (char *)hash) != 0) {
+        if (deep_check_password(db, hash) != 0) {
             fprintf(stderr, "Error during the deep check.\n");
         } else {
             printf("Check complete.\n\n");

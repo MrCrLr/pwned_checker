@@ -2,7 +2,7 @@
 #include "password_input.h"
 #include "utils.h"
 
-int main() {
+int main(void) {
     // Initialize SQLite for deep check
     sqlite3 *db = NULL;
     const char *db_path = "database/pwnedpasswords.db";
@@ -27,7 +27,7 @@ int main() {
 
         // Compute the SHA-1 hash of the password
         unsigned char hash[SHA_DIGEST_LENGTH];
-        SHA1(securePassword.buffer, securePassword.buffer, hash);
+        SHA1(securePassword.buffer, securePassword.size, hash);
         
         // Perform a deep check using the binary hash directly
         if (deep_check_password(db, hash) != 0) {
